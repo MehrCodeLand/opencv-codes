@@ -1,12 +1,19 @@
+import easyocr
 import cv2 as cv
-import pandas as pd 
-import numpy as np
 
-image = cv.imread('hello.jpeg')
-# gray_image = cv.cvtColor(image , cv.COLOR_BAYER_BG2GRAY)
 
-resize_image = cv.resize(image , (500 , 500))
 
-cv.imshow('image' , resize_image)
-cv.waitKey(0)
-cv.destroyAllWindows()
+def ocr_farsi():
+    image = cv.imread('m.jpeg')
+    
+    reader = easyocr.Reader(['fa'])
+    results = reader.readtext('ocr/m.jpeg')
+    
+    show_ocr_result(results)
+    
+def show_ocr_result(results):
+    for (bbox , text , prob) in results:
+        print("Info {:4f}: {} ".format(prob,text).upper())
+
+
+ocr_farsi()
