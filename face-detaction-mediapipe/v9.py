@@ -19,7 +19,7 @@ def calculate_eye_lip_distance(eye_center, lip_center):
     return dist.euclidean(eye_center, lip_center)
 
 # Head Movement Detection
-def detect_head_movement(yaw_angle, threshold= 2):
+def detect_head_movement(yaw_angle, threshold=10):
     if yaw_angle > threshold:
         return "Right"
     elif yaw_angle < -threshold:
@@ -36,7 +36,7 @@ def detect_head_pose(landmarks, image_width, image_height):
         (-150.0, -150.0, -125.0), # Left mouth corner
         (150.0, -150.0, -125.0)  # Right mouth corner
     ])
-    
+
     image_points = np.array([
         (landmarks[1][0], landmarks[1][1]),  # Nose tip
         (landmarks[152][0], landmarks[152][1]), # Chin
@@ -64,22 +64,15 @@ def detect_head_pose(landmarks, image_width, image_height):
         return yaw_angle
     return None
 
-
+# Mouth Movement Detection
 def is_mouth_moving(mouth_landmarks, previous_mouth_distance, threshold=2.0):
-    # Check if there are enough landmarks
-    if len(mouth_landmarks) < 4:
-        return False, previous_mouth_distance
-
-    # Calculate upper and lower lip distances
-    upper_lip = np.mean([mouth_landmarks[i] for i in range(2)], axis=0)
-    lower_lip = np.mean([mouth_landmarks[i] for i in range(2, 4)], axis=0)
-
-    # Compute mouth distance and detect movement
-    current_mouth_distance = dist.euclidean(upper_lip, lower_lip)
-    if abs(current_mouth_distance - previous_mouth_distance) > threshold:
-        return True, current_mouth_distance
-    return False, current_mouth_distance
-
+    if len(mouth_landmarks) >= 4:  # Ensure enough points are available
+        upper_lip = np.mean([mouth_landmarks[i] for i in [0, 1]], axis=0)
+        lower_lip = np.mean([mouth_landmarks[i] for i in [2, 3]], axis=0)
+        current_mouth_distance = dist.euclidean(upper_lip, lower_lip)
+        if abs(current_mouth_distance - previous_mouth_distance) > threshold:
+            return True, current_mouth_distance
+    return False, previous_mouth_distance
 
 # Initialize variables
 previous_mouth_distance = 0.0
@@ -118,7 +111,8 @@ while cap.isOpened():
             yaw_angle = detect_head_pose(landmarks, frame_width, frame_height)
 
             # Mouth Movement Detection
-            mouth_landmarks = [landmarks[i] for i in [13, 14, 17, 18]]
+            mouth_indices = [13, 14, 17, 18]
+            mouth_landmarks = [landmarks[i] for i in mouth_indices if i < len(landmarks)]
             mouth_moving, previous_mouth_distance = is_mouth_moving(mouth_landmarks, previous_mouth_distance)
 
             # Check Blink
