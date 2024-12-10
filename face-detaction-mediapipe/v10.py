@@ -141,7 +141,7 @@ while cap.isOpened():
             if ear < blink_threshold:
                 blink_detected = True
             else:
-                blink_detected = False
+                blink_qdetected = False
 
             # Check Head Movement
             movement = detect_head_movement(yaw_angle)
