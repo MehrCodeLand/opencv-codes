@@ -74,6 +74,30 @@ def is_mouth_moving(mouth_landmarks, previous_mouth_distance, threshold=2.0):
             return True, current_mouth_distance
     return False, previous_mouth_distance
 
+
+
+# Mask Detection
+def is_wearing_mask(landmarks, frame_width, frame_height):
+    # Landmarks for the lower half of the face: nose and mouth region
+    nose_indices = [1, 2, 3]
+    mouth_indices = [13, 14, 17, 18]
+
+    # Convert landmarks to pixel coordinates
+    nose_landmarks = [landmarks[i] for i in nose_indices if i < len(landmarks)]
+    mouth_landmarks = [landmarks[i] for i in mouth_indices if i < len(landmarks)]
+
+    # Check if nose and mouth are occluded (values close to each other)
+    if len(nose_landmarks) >= 2 and len(mouth_landmarks) >= 2:
+        nose_distance = dist.euclidean(nose_landmarks[0], nose_landmarks[1])
+        mouth_distance = dist.euclidean(mouth_landmarks[0], mouth_landmarks[1])
+
+        # If nose and mouth distances are smaller than a threshold, assume masked
+        if nose_distance < 10 and mouth_distance < 10:
+            return True
+    return False
+
+
+
 # Initialize variables
 previous_mouth_distance = 0.0
 blink_threshold = 0.2
@@ -115,6 +139,9 @@ while cap.isOpened():
             mouth_landmarks = [landmarks[i] for i in mouth_indices if i < len(landmarks)]
             mouth_moving, previous_mouth_distance = is_mouth_moving(mouth_landmarks, previous_mouth_distance)
 
+            # Mask Detection
+            wearing_mask = is_wearing_mask(landmarks, frame_width, frame_height)
+
             # Check Blink
             if ear < blink_threshold:
                 blink_detected = True
@@ -123,6 +150,8 @@ while cap.isOpened():
 
             # Check Head Movement
             movement = detect_head_movement(yaw_angle)
+            
+
 
             # Draw Results
             cv2.putText(frame, f"EAR: {ear:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
@@ -130,6 +159,9 @@ while cap.isOpened():
             cv2.putText(frame, f"Movement: {movement}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             cv2.putText(frame, f"Blink: {'Yes' if blink_detected else 'No'}", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             cv2.putText(frame, f"Speaking: {'Yes' if mouth_moving else 'No'}", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            cv2.putText(frame, f"Mask: {'Yes' if wearing_mask else 'No'}", (10, 170), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+
 
     cv2.imshow("Liveness Detection", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -74,6 +74,7 @@ def is_mouth_moving(mouth_landmarks, previous_mouth_distance, threshold=2.0):
             return True, current_mouth_distance
     return False, previous_mouth_distance
 
+
 # Mask Detection Function
 def detect_mask(face_landmarks, frame, frame_width, frame_height):
     # Define the mask region (e.g., nose and mouth area)
@@ -92,6 +93,45 @@ def detect_mask(face_landmarks, frame, frame_width, frame_height):
     if std_dev < 30:  # Threshold for detecting a mask (lower variation means likely a mask)
         return True
     return False
+
+def is_mask_worn(landmarks, frame=None):
+    """
+    Detects if a mask is being worn based on the coverage of the nose and mouth area.
+
+    Args:
+        landmarks: List of facial landmarks.
+        frame: Optional - the frame to visualize mask coverage for debugging.
+
+    Returns:
+        bool: True if a mask is detected, False otherwise.
+    """
+    try:
+        nose_tip = landmarks[1]  # Nose tip
+        left_mouth_corner = landmarks[61]  # Left mouth corner
+        right_mouth_corner = landmarks[291]  # Right mouth corner
+        chin = landmarks[152]  # Chin point
+
+        # Ensure all landmarks are valid
+        if not all([nose_tip, left_mouth_corner, right_mouth_corner, chin]):
+            return False
+
+        # Calculate distances
+        mouth_width = dist.euclidean(left_mouth_corner, right_mouth_corner)
+        nose_to_chin_distance = dist.euclidean(nose_tip, chin)
+
+        # Mask coverage ratio (adjusted threshold)
+        mask_coverage_ratio = nose_to_chin_distance / mouth_width
+
+        # Debugging visualization
+        if frame is not None:
+            cv2.line(frame, nose_tip, chin, (255, 0, 0), 2)  # Nose to chin
+            cv2.line(frame, left_mouth_corner, right_mouth_corner, (0, 255, 0), 2)  # Mouth width
+
+        # Adjusted ratio threshold
+        return mask_coverage_ratio < 0.7
+    except Exception as e:
+        print(f"Error in mask detection: {e}")
+        return False
 
 # Initialize variables
 previous_mouth_distance = 0.0
@@ -135,16 +175,19 @@ while cap.isOpened():
             mouth_moving, previous_mouth_distance = is_mouth_moving(mouth_landmarks, previous_mouth_distance)
 
             # Mask Detection
-            mask_detected = detect_mask(landmarks, frame, frame_width, frame_height)
+            mask_detected = is_mask_worn(landmarks)
 
             # Check Blink
             if ear < blink_threshold:
                 blink_detected = True
             else:
-                blink_qdetected = False
+                blink_detected = False
 
             # Check Head Movement
             movement = detect_head_movement(yaw_angle)
+
+
+            mask_detected1 = detect_mask(landmarks, frame, frame_width, frame_height)
 
             # Draw Results
             cv2.putText(frame, f"EAR: {ear:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
@@ -152,9 +195,10 @@ while cap.isOpened():
             cv2.putText(frame, f"Movement: {movement}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             cv2.putText(frame, f"Blink: {'Yes' if blink_detected else 'No'}", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             cv2.putText(frame, f"Speaking: {'Yes' if mouth_moving else 'No'}", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-            cv2.putText(frame, f"Mask: {'Yes' if mask_detected else 'No'}", (10, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            # cv2.putText(frame, f"Mask_1: {'Yes' if mask_detected1 else 'No'}", (10, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            # cv2.putText(frame, f"Mask: {'Yes' if mask_detected else 'No'}", (10, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
 
-    cv2.imshow("Liveness Detection and Mask Detection", frame)
+    cv2.imshow("Liveness Detection", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
