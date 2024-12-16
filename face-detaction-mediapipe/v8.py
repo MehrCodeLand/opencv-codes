@@ -2,10 +2,42 @@ import cv2
 import numpy as np
 import mediapipe as mp
 from scipy.spatial import distance as dist
+import random
 
 # Initialize MediaPipe Face Mesh
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(refine_landmarks=True, min_detection_confidence=0.5, min_tracking_confidence=0.5)
+
+
+def select_random_frame(video_path):
+    # Open the video file
+    video = cv2.VideoCapture(video_path)
+
+    # Get the total number of frames in the video
+    total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    # Select a random frame number
+    random_frame_number = random.randint(0, total_frames - 1)
+
+    # Set the video to the random frame
+    video.set(cv2.CAP_PROP_POS_FRAMES, random_frame_number)
+
+    # Read the frame
+    ret, frame = video.read()
+
+    # Release the video capture object
+    video.release()
+
+    # Check if the frame was successfully read
+    if ret:
+        return frame
+    else:
+        raise ValueError("Couldn't read the frame from the video.")
+
+# Example usage
+video_path = 'path_to_your_video_file.mp4'
+random_frame = select_random_frame(video_path)
+
 
 # EAR Calculation Function
 def calculate_ear(eye_landmarks):
