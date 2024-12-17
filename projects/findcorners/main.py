@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load image in grayscale
-image = cv2.imread('path_to_image.jpg', cv2.IMREAD_GRAYSCALE)
+image = cv2.imread('3.jpeg', cv2.IMREAD_GRAYSCALE)
 
 # Parameters for goodFeaturesToTrack
 maxCorners = 100
