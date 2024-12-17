@@ -15,16 +15,6 @@ face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1, refin
 
 @app.post("/detect-speaking")
 async def detect_speaking(speaking_threshold: float = 5.0):
-    """
-    Detect if a person is speaking based on the distance between the upper and lower lips.
-    
-    Args:
-        file (UploadFile): The uploaded image file containing a face.
-        speaking_threshold (float): Threshold for lip distance to determine speaking.
-
-    Returns:
-        JSONResponse: Lip distance and speaking status.
-    """
     try:
         lip_distance = 0
         random_images = select_random_frames()
