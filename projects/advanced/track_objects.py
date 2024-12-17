@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 import time
 
-# Initialize MediaPipe Face Detection
+# MediaPipe
 mp_face_detection = mp.solutions.face_detection
 face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.5)
 
