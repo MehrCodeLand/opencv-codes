@@ -1,12 +1,11 @@
-import cv2.cv2
-import fastapi 
+import cv2
+import fastapi
 import uvicorn
 import numpy as np
 import logging
 import tempfile
-import os
-import cv2
 import mediapipe as mp
+import os
 
 
 # 1- Extract frames 
