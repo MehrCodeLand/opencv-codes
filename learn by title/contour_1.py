@@ -12,7 +12,7 @@ cv.drawContours(image, contours, -1, (0, 255, 0), 2)
 
 cv.imshow('Contours', image)
 cv.waitKey(0)
-cv.destroyAllWindows()
+cv.destroyAllWindows()\
 
 # *** tips ***
 # Contours are curves joining all the continuous points along the 
